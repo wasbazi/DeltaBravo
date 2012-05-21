@@ -69,6 +69,12 @@ class DB_QueryOperations extends DatabaseConnection {
     // Return $this so the next class will be applied to DB_QueryOperations
     return $this;
   }
+
+  public function desc($table) {
+    $this->operation = "DESC `$table`";
+    $this->pdo = 'query';
+    return $this;
+  }
   
   public function execute($debug = false, $json = false){
     $query_parts = array('operation', 'join', 'condition', 'modifier');
