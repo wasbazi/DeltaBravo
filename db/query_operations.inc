@@ -10,11 +10,15 @@ class DB_QueryOperations extends DatabaseConnection {
 
   public function select($table, $column = "*"){
     $this->operation = "SELECT ";
-    if($column == "*"){
+    if ($column == "*") {
       $this->operation .= $column;
-    }else{
+    }
+    elseif (is_scalar($column)) {
       $this->operation .= "`$column`";
-    } 
+    }
+    else {
+      $this->operation .= '`' . implode('`, `', $column) . '`';
+    }
     $this->operation .= " FROM $table";
     $this->pdo = 'query';
     return $this;

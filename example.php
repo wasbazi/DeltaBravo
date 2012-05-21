@@ -27,6 +27,8 @@ $results['select/order/multi'] = $db->select('test1')->order($order)->execute();
 $results['select/limit'] = $db->select('test1')->limit(2)->execute();
 $results['select/limit/offset'] = $db->select('test1')->limit(2, 2)->execute();
 
+$results['desc'] = $db->desc('test1')->execute();
+
 foreach ($results as &$r) {
 	if (!$r) {
 		if (ob_start()) {
