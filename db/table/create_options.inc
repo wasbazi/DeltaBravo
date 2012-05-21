@@ -1,6 +1,6 @@
 <?php
 
-class GC_DB_CreateOptions extends GreenCoffee{
+class DB_CreateOptions extends DatabaseConnection {
 
   protected $actions = array(
     'BIT', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'INT', 'INTEGER', 'BIGINT', 

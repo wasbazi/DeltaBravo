@@ -1,10 +1,10 @@
 <?php
 
-class GC_DB_TableOperations extends GC_DatabaseConnection{
+class DB_TableOperations extends DatabaseConnection {
 
   public function __construct(){
-    require_once("create_options.inc");
-    require_once("alter_options.inc");
+    require_once("table" . DIRECTORY_SEPARATOR . "create_options.inc");
+    require_once("table" . DIRECTORY_SEPARATOR . "alter_options.inc");
   }
 
   public function create($name, $exists = false){
@@ -12,14 +12,14 @@ class GC_DB_TableOperations extends GC_DatabaseConnection{
     $this->action .= ($exists) ? 'IF EXISTS ' : 'IF NOT EXISTS ';
     $this->action .= $name;
     
-    $this->col_class = new GC_DB_CreateOptions;
+    $this->col_class = new DB_CreateOptions();
     $this->pdo = 'exec';
     return $this;
   }
   public function alter($name){
     $this->action = 'ALTER TABLE ' . $name;
     
-    $this->col_class = new GC_DB_AlterOptions;
+    $this->col_class = new DB_AlterOptions();
     return $this;
   }
 

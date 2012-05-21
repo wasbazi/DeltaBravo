@@ -1,45 +1,42 @@
 <?php
 
-/*
- *
- * Example use of GC_DatabaseConnection:
- * $gc = new GC_DatabaseConnection();
+/**
+ * Example use of DatabaseConnection:
+ * $gc = new DatabaseConnection('localhost', 'database', 'username', 'password');
  * $gc->select(table, column)->where(key, value, conditional)->sort(column)->execute();
- *
  */
- 
 
- 
-class GC_DatabaseConnection extends GreenCoffee{
+class DatabaseConnection {
 
-  public function __construct(){
+  private static $hostname;
+  private static $database;
+  private static $username;
+  private static $password;
+  private static $type;
+  private static $encoding;
+
+  public function __construct($hostname, $database, $username, $password, $type = 'mysql', $encoding = 'utf8') {
     require_once("db" . DIRECTORY_SEPARATOR . "query_operations.inc");
     require_once("db" . DIRECTORY_SEPARATOR . "table_operations.inc");
+
+    self::$hostname = $hostname;
+    self::$database = $database;
+    self::$username = $username;
+    self::$password = $password;
+    self::$type = $type;
+    self::$encoding = $encoding;
   }
 
   // Function to connect to the database, Object $newSettings 
-  public function connect( $newSettings = 0 ){
-    global $coffee_settings;
-
-    if($newSettings == 0){ // If default settings, load from settings object
-      $connection_options = $coffee_settings->db_settings; 
-    } else{ // If new settings, use input
-      $connection_options = $newSettings;
-    }
-    
-    // Declare all connection option variables by using variable variables
-    foreach( $connection_options as $key => $value ){
-      ${$key} = $value;
-    }
-    
+  public function connect(){
     try { // Try to use PDO to connect
-      switch(strtolower($type)) { // Sanitize database type to lowercase
+      switch(strtolower(self::$type)) { // Sanitize database type to lowercase
         case "mysql": // Setup MySQL PDO connection
-          $db = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(PDO::ATTR_PERSISTENT => true));
+          $db = new PDO('mysql:host=' . self::$hostname . ';dbname=' . self::$database . ';charset=' . self::$encoding, self::$username, self::$password, array(PDO::ATTR_PERSISTENT => true));
           return $db;
           break;
         case "couch": // Setup CouchDB PDO connection using custom driver
-          
+          throw new Exception("Couch DB driver not yet implemented", 1);
           break;
       }
     }catch(PDOException $e) { // Catch PDOException and echo error
@@ -101,19 +98,18 @@ class GC_DatabaseConnection extends GreenCoffee{
   // Used to catch unspecified functions, all query handling 
   // is done through __call()
   public function __call($name, $arguments){
-    
-    $table_operations_methods = get_class_methods('GC_DB_TableOperations');
+    $table_operations_methods = get_class_methods('DB_TableOperations');
     if(in_array($name, $table_operations_methods)){ 
-      $table_operations = new GC_DB_TableOperations();
+      $table_operations = new DB_TableOperations();
       
       // Calls the function in the scope of $table_operations, the relevant function is
       // stored in $name, with $arguments passed for the functions arguments
       return call_user_func_array(array($table_operations, $name), $arguments);
     }
 
-    $query_operations_methods = get_class_methods('GC_DB_QueryOperations');
+    $query_operations_methods = get_class_methods('DB_QueryOperations');
     if(in_array($name, $query_operations_methods)){
-      $query_operations = new GC_DB_QueryOperations();
+      $query_operations = new DB_QueryOperations();
       // Calls the function in the scope of $query_operations, the relevant function is
       // stored in $name, with $arguments passed for the functions arguments
       return call_user_func_array(array($query_operations, $name), $arguments);

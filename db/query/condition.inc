@@ -1,6 +1,6 @@
 <?php
 
-class GC_DB_Condition extends GreenCoffee{
+class DB_Condition {
   
   // Parses where statements nested in arrays
   public function parse_where($clause){
@@ -17,7 +17,7 @@ class GC_DB_Condition extends GreenCoffee{
       
       if(isset($clause[1])){ // Sibling array needs to be parsed
         array_shift($clause);
-        return $clause_frag . $this->parse_where($clause);
+        return $this->parse_where($clause) . $clause_frag;
       }
       else{ // No sibling array exists 
         return $clause_frag;

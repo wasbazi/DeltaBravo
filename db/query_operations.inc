@@ -1,6 +1,6 @@
 <?php
 
-class GC_DB_QueryOperations extends GC_DatabaseConnection{
+class DB_QueryOperations extends DatabaseConnection {
 
   public function __construct(){
     require_once("query" . DIRECTORY_SEPARATOR . "condition.inc");
@@ -66,7 +66,7 @@ class GC_DB_QueryOperations extends GC_DatabaseConnection{
     $this->placeholders = array_values($data);
     $this->pdo = 'count';
     
-    // Return $this so the next class will be applied to GC_DB_QueryOperations
+    // Return $this so the next class will be applied to DB_QueryOperations
     return $this;
   }
   
@@ -87,10 +87,10 @@ class GC_DB_QueryOperations extends GC_DatabaseConnection{
   
   public function __call($name, $arguments){
   
-    $condition_methods = get_class_methods('GC_DB_Condition');
+    $condition_methods = get_class_methods('DB_Condition');
   
     if(in_array($name, $condition_methods)){
-      $condition = new GC_DB_Condition();
+      $condition = new DB_Condition();
       $clause = call_user_func_array(array($condition, $name), $arguments);
       $this->condition = $clause->where;
       if(isset($clause->placeholders)){
@@ -102,21 +102,21 @@ class GC_DB_QueryOperations extends GC_DatabaseConnection{
       }
     }
     
-    $join_methods = get_class_methods('GC_DB_Join');
+    $join_methods = get_class_methods('DB_Join');
     
     if(in_array($name, $join_methods)){
-      $join = new GC_DB_Modifier();
+      $join = new DB_Join();
       $this->join = call_user_func_array(array($join, $name), $arguments);
     }
     
-    $modifier_methods = get_class_methods('GC_DB_Modifier');
+    $modifier_methods = get_class_methods('DB_Modifier');
    
     if(in_array($name, $modifier_methods)){
-      $modifier = new GC_DB_Modifier();
+      $modifier = new DB_Modifier();
       $this->modifier = call_user_func_array(array($modifier, $name), $arguments);
     }
     
-    // Return $this so the next class will be applied to GC_DB_QueryOperations
+    // Return $this so the next class will be applied to DB_QueryOperations
     return $this;
   }
 }

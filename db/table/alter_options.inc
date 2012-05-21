@@ -1,8 +1,9 @@
 <?php
 // TODO:
-// 1) Ad other Alter Options
+// 1) Add other Alter Options
 // 2) Read through code, hasn't been tested or read after coding
-class GC_DB_AlterOptions extends GC_DB_CreateOptions{
+
+class DB_AlterOptions extends DB_CreateOptions {
 
 	protected $actions = array(
 		'ADD' => array(
