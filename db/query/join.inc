@@ -21,9 +21,9 @@ class DB_Join{
   public function join($table, $op){
     $join = '';
     if(is_scalar($table)){
-      $join .= "JOIN $table";
+      $join .= "JOIN `$table`";
       if (is_scalar($op)) {
-        $join .= " USING ($op)";
+        $join .= " USING (`$op`)";
       }
       else {
         if (is_scalar($op[0])) {

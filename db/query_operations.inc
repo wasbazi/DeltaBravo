@@ -8,18 +8,35 @@ class DB_QueryOperations extends DatabaseConnection {
     require_once("query" . DIRECTORY_SEPARATOR . "join.inc");
   }
 
-  public function select($table, $column = "*"){
-    $this->operation = "SELECT ";
-    if ($column == "*") {
-      $this->operation .= $column;
-    }
-    elseif (is_scalar($column)) {
-      $this->operation .= "`$column`";
+  public function select($table, $column = "*", $table_structure = array()){
+    $this->operation = "SELECT";
+    if (empty($table_structure)) {
+      if ($column == "*") {
+        $this->operation .= " $column";
+      }
+      elseif (is_scalar($column)) {
+        $this->operation .= " `$column`";
+      }
+      else {
+        $this->operation .= ' `' . implode('`, `', $column) . '`';
+      }
     }
     else {
-      $this->operation .= '`' . implode('`, `', $column) . '`';
+      // Alias if $table_structure has been provided
+      // array('table' => array('column1', 'column2', ...))
+      $started = FALSE;
+      foreach ($table_structure as $table_name => $t) {
+        foreach ($t as $column) {
+          if ($started){
+            $this->operation .= ',';
+          }
+          $this->operation .= " `$table_name`.`$column` AS `$table_name" . "__$column`";
+          $started = TRUE;
+        }
+      }
     }
-    $this->operation .= " FROM $table";
+
+    $this->operation .= " FROM `$table`";
     $this->pdo = 'query';
     return $this;
   }
@@ -116,6 +133,9 @@ class DB_QueryOperations extends DatabaseConnection {
     
     if(in_array($name, $join_methods)){
       $join = new DB_Join();
+      if (!empty($this->join)) {
+        $this->join .= ' ';
+      }
       $this->join .= call_user_func_array(array($join, $name), $arguments);
     }
     
@@ -123,7 +143,10 @@ class DB_QueryOperations extends DatabaseConnection {
    
     if(in_array($name, $modifier_methods)){
       $modifier = new DB_Modifier();
-      $this->modifier = call_user_func_array(array($modifier, $name), $arguments);
+      if (!empty($this->modifier)) {
+        $this->modifier .= ' ';
+      }
+      $this->modifier .= call_user_func_array(array($modifier, $name), $arguments);
     }
     
     // Return $this so the next class will be applied to DB_QueryOperations
