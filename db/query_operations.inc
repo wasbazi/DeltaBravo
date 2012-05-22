@@ -116,7 +116,7 @@ class DB_QueryOperations extends DatabaseConnection {
     
     if(in_array($name, $join_methods)){
       $join = new DB_Join();
-      $this->join = call_user_func_array(array($join, $name), $arguments);
+      $this->join .= call_user_func_array(array($join, $name), $arguments);
     }
     
     $modifier_methods = get_class_methods('DB_Modifier');
