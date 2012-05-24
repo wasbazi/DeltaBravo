@@ -45,6 +45,9 @@ class DB_Join{
     }
     else {
       foreach($table as $t){
+        if (!empty($join)) {
+          $join .= ' ';
+        }
         $join .= $this->join($t[0], $t[1]);;
       }
     }
