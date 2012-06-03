@@ -43,7 +43,7 @@ class DB_Condition {
       $clause_array = $key;    
       $this->where = $this->parse_where($clause_array);
     }else{ // Else, single where clause and it needs to be stored in an array
-      $condition = "`$key` $conditional ?";
+      $condition = "$key $conditional ?";
       $placeholders = array($value);
       $this->where = $condition;
       $this->placeholders = $placeholders;
