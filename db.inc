@@ -49,30 +49,50 @@ class DatabaseConnection {
       $connection = $this->connect();
       
       // Query string parsed
-      if($debug && $json){
+      if ($debug && $json) {
         $json = array('query' => $query, 'placeholders' => $placeholders);
         return $json;
-      }elseif($debug){
+      }
+      elseif ($debug) {
         echo sprintf("<pre>Query: '%s'</pre><br />", print_r($query,1));
         if(!empty($placeholders)){
           echo sprintf("<pre>Placeholders: %s</pre><br />", print_r($placeholders,1));
         }
       }
       
-      if(isset($pdo) && $pdo == 'exec'){
+      if (isset($pdo) && $pdo == 'exec') {
         $result = $connection->exec($query);
-      }else{
+      }
+      else {
         $statement = $connection->prepare($query);
         $result = $statement->execute($placeholders);
-        if(isset($pdo) && $pdo == 'query'){
+        if (isset($pdo) && $pdo == 'query') {
           $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-          if(empty($result)) {
+          if (empty($result)) {
             $result = false;
           }
-        }else if(isset($pdo) && $pdo == 'count'){
+        }
+        elseif (isset($pdo) && $pdo == 'count') {
           $result = $statement->rowCount();
         }
-        
+        elseif (isset($pdo) && $pdo == 'list_tables') {
+          $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+          if(empty($result)) {
+            $result = FALSE;
+          }
+          else {
+            foreach ($result as $k => $v) {
+              reset($result[$k]);
+              $result[$k] = current($result[$k]);
+            }
+          }
+        }
+        elseif (isset($pdo) && $pdo == 'list_columns') {
+          $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+          if(empty($result)) {
+            $result = FALSE;
+          }
+        }
       }
       // Close the connection
       $this->close($connection);
@@ -84,8 +104,9 @@ class DatabaseConnection {
     }
   }
   public function last_insert_id(){
+    $db = new PDO('mysql:host=' . self::$hostname . ';dbname=' . self::$database . ';charset=' . self::$encoding, self::$username, self::$password, array(PDO::ATTR_PERSISTENT => true));
     $connection = $this->connection;
-    $last_insert = PDO::lastInsertId();
+    $last_insert = $db->lastInsertId();
     $this->close($connection);
     return $last_insert;
   }
