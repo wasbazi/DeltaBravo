@@ -1,9 +1,6 @@
 <?php
-// TODO:
-// 1) Add other Alter Options
-// 2) Read through code, hasn't been tested or read after coding
 
-class DB_AlterOptions extends DB_CreateOptions {
+class DB_AlterOptions extends DB_CreateOptions{
 
 	protected $actions = array(
 		'ADD' => array(
@@ -21,10 +18,10 @@ class DB_AlterOptions extends DB_CreateOptions {
 	);
 
 	public function col($options){
-		for($i = 0; $i < count($options) ; $i++){
+		foreach($i = 0; $i < count($options) ; $i++){
       $upper_option[0] = strtoupper($options[$i][0]);
       $upper_option[1] = strtoupper($options[$i][1]);
-			if(isset($actions[$upper_option[0]])){
+			if(isset($actions[$upper_option[0]]){
 				$action = strtolower($options[$i][0]);
       }
       if(in_array($upper_option[1], $actions["$action"][0])){
@@ -32,9 +29,10 @@ class DB_AlterOptions extends DB_CreateOptions {
       }
       if($action && $type){
         $specifications = array_shift($options[$i]);
-        $this->col .= (isset($this->col)) ? ' ,' : '';
-        $this->col .= call_user_func_array(array($this,$action), $specifications);
-      }else{
+        $this->col .= (isset($this->col) ? ' ,' : '';
+        $this->col .= call_user_func(array($this,$action), $specifications);
+      }
+			}else{
 				continue;
 			}
 		}
@@ -48,7 +46,7 @@ class DB_AlterOptions extends DB_CreateOptions {
       case 'COLUMN':
         $add = "COLUMN '$name'";
         $add .= parent::col($definition);
-        if($position && ( strtoupper($position) == 'FIRST' || strtoupper($position[0]) == 'AFTER')){
+        if($position && ( strtoupper($position) == 'FIRST' || strtoupper($position[0]) == 'AFTER'){
           $add .= (is_array($position)) ? $position[0] . ' ' . $position[1] : $position;
         }
     }
@@ -70,7 +68,7 @@ class DB_AlterOptions extends DB_CreateOptions {
       case 'COLUMN':
         $change = "COLUMN '" . $name[0] . ' ' . $name[1] . "'";
         $change .= parent::col($definition);
-        if($position && ( strtoupper($position) == 'FIRST' || strtoupper($position[0]) == 'AFTER')){
+        if($position && ( strtoupper($position) == 'FIRST' || strtoupper($position[0]) == 'AFTER'){
           $change .= (is_array($position)) ? $position[0] . ' ' . $position[1] : $position;
         }
     }
@@ -83,7 +81,7 @@ class DB_AlterOptions extends DB_CreateOptions {
       case 'COLUMN':
         $modify = "COLUMN '$name'";
         $modify .= parent::col($definition);
-        if($position && ( strtoupper($position) == 'FIRST' || strtoupper($position[0]) == 'AFTER')){
+        if($position && ( strtoupper($position) == 'FIRST' || strtoupper($position[0]) == 'AFTER'){
           $modify .= (is_array($position)) ? $position[0] . ' ' . $position[1] : $position;
         }
     }

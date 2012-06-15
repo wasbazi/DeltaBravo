@@ -1,6 +1,6 @@
 <?php
 
-class DB_QueryOperations extends GC_DatabaseConnection {
+class DB_QueryOperations extends DatabaseConnection {
 
   public function __construct(){
     require_once("query" . DIRECTORY_SEPARATOR . "condition.inc");
@@ -110,6 +110,34 @@ class DB_QueryOperations extends GC_DatabaseConnection {
     
     // Return $this so the next class will be applied to DB_QueryOperations
     return $this;
+  }
+
+  public function last_insert_id($name = null) {     
+    $connection = $this->connection;
+    if ($name === null) {
+      $last_insert = PDO::lastInsertId();
+    }
+    else {
+      $last_insert = PDO::lastInsertId($name);
+    }
+    return $last_insert;
+  }
+       
+  public function list_tables($like = null) {
+    $connection = $this->connection;
+    $this->operation = 'SHOW TABLES';
+    if ($like !== null) {
+      $this->operation .= ' LIKE ?';
+      $this->placeholders = array($like);
+    }
+    $this->pdo = 'list_tables';
+    return $this;
+  }
+       
+  public function list_columns($table) {
+    $this->operation = "SHOW COLUMNS FROM `$table`";
+    $this->pdo = 'list_columns';
+    return $this;    
   }
 
   public function desc($table) {
