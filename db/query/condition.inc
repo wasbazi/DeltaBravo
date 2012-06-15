@@ -32,7 +32,11 @@ class DB_Condition {
         $prefix = ' ' . $clause[0][$length--] . ' ';
       }
       
-      return $prefix . '(' . $this->parse_where($clause[0]) . ')';
+      if(isset($clause[1])){
+        return '(' . $this->parse_where($clause[1]) . ')' . $prefix . '(' . $this->parse_where($clause[0]) . ')';
+      }else{
+        return $prefix . '(' . $this->parse_where($clause[0]) . ')';
+      }
     }
   }
   

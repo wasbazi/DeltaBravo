@@ -1,6 +1,6 @@
 <?php
 
-class DB_CreateOptions extends DatabaseConnection {
+class DB_CreateOptions extends GC_DatabaseConnection {
 
   protected $actions = array(
     'BIT', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'INT', 'INTEGER', 'BIGINT', 

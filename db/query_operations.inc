@@ -1,6 +1,6 @@
 <?php
 
-class DB_QueryOperations extends DatabaseConnection {
+class DB_QueryOperations extends GC_DatabaseConnection {
 
   public function __construct(){
     require_once("query" . DIRECTORY_SEPARATOR . "condition.inc");
@@ -17,8 +17,21 @@ class DB_QueryOperations extends DatabaseConnection {
       elseif (is_scalar($column)) {
         $this->operation .= " `$column`";
       }
-      else {
+      elseif (is_scalar($column[0])) {
         $this->operation .= ' `' . implode('`, `', $column) . '`';
+      }else{
+        foreach ($column as $key => $value) {
+          if($started){
+            $this->operation .= ',';
+          }
+          $started = true;
+
+          if(is_scalar($value)){
+            $this->operation .= ' `' . $value . '`';
+          }else{
+            $this->operation .= ' ' . $value[1] . '(`' . $value[0] . '`)';
+          }
+        }
       }
     }
     else {
@@ -30,7 +43,15 @@ class DB_QueryOperations extends DatabaseConnection {
           if ($started){
             $this->operation .= ',';
           }
-          $this->operation .= " `$table_name`.`$column` AS `$table_name" . "__$column`";
+
+          if(is_scalar($column)){
+            $this->operation .= " `$table_name`.`$column` AS `$table_name" . "__$column`";
+          }else{
+            $col = $column[0];
+            $func = $column[1];
+            $this->operation .= " $func(`$table_name`.`$col`) AS `$table_name" . "__$col" . "__$func`";
+          }          
+
           $started = TRUE;
         }
       }
@@ -110,34 +131,6 @@ class DB_QueryOperations extends DatabaseConnection {
     $placeholders = isset($this->placeholders) ? $this->placeholders : array();
     $pdo = (isset($this->pdo)) ? $this->pdo : '';
     return parent::execute($query, $placeholders, $pdo, $debug, $json);
-  }
-
-  public function last_insert_id($name = null) {
-    $connection = $this->connection;
-    if ($name === null) {
-      $last_insert = PDO::lastInsertId();
-    }
-    else {
-      $last_insert = PDO::lastInsertId($name);
-    }
-    return $last_insert;
-  }
-
-  public function list_tables($like = null) {
-    $connection = $this->connection;
-    $this->operation = 'SHOW TABLES';
-    if ($like !== null) {
-      $this->operation .= ' LIKE ?';
-      $this->placeholders = array($like);
-    }
-    $this->pdo = 'list_tables';
-    return $this;
-  }
-
-  public function list_columns($table) {
-    $this->operation = "SHOW COLUMNS FROM `$table`";
-    $this->pdo = 'list_columns';
-    return $this;
   }
   
   public function __call($name, $arguments){
