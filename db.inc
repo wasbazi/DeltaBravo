@@ -103,6 +103,8 @@ class DatabaseConnection {
       echo $e->getMessage();
     }
   }
+
+  // Get the ID using PDO's lastInsertId
   public function last_insert_id(){
     $db = new PDO('mysql:host=' . self::$hostname . ';dbname=' . self::$database . ';charset=' . self::$encoding, self::$username, self::$password, array(PDO::ATTR_PERSISTENT => true));
     $connection = $this->connection;
