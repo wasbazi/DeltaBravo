@@ -92,7 +92,7 @@ class DB_QueryOperations extends DatabaseConnection {
     return $this;
   }
   
-  public function insert($table, $data){
+  public function insert($table, $data, $ignore = false){
     $columns = array_keys($data);
     $columns_string = implode("`, `", $columns);
     
@@ -104,7 +104,13 @@ class DB_QueryOperations extends DatabaseConnection {
       }
     }
 
-    $this->operation = "INSERT INTO `$table` (`$columns_string`) VALUES ($placeholder_string)";
+    if($ignore){
+      $this->operation = "INSERT DUPLICATE ";
+    }else{
+      $this->operation = "INSERT ";
+    }
+
+    $this->operation .= "INTO `$table` (`$columns_string`) VALUES ($placeholder_string)";
     $this->placeholders = array_values($data);
     $this->pdo = 'count';
     
