@@ -1,6 +1,6 @@
 <?php
 
-class TableOperations extends DatabaseConnection {
+class DB_TableOperations extends DatabaseConnection {
 
   public function __construct(){
     require_once("table" . DIRECTORY_SEPARATOR . "create_options.inc");
