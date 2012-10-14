@@ -18,6 +18,19 @@ class DB_Join{
      OR
      CONSTRUCT -> USING (column)
   */
+   public function left_join($table, $op){
+    $left = 'LEFT ';
+    $join = self::join($table, $op);
+    $left .= $join;
+    return $left;
+  }
+  public function right_join($table, $op){
+    $right = 'RIGHT ';
+    $join = self::join($table, $op);
+    $right .= $join;
+    return $right;
+  }
+  
   public function join($table, $op){
     $join = '';
     if(is_scalar($table)){

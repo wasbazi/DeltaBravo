@@ -9,7 +9,20 @@ class DB_Condition {
       $key = $clause[0][0];
       $value = $clause[0][1];
       $conditional = $clause[0][2];
-      $clause_frag = "( $key $conditional '$value' )";
+      
+      // Used in places such as IN (x, y, z)
+      if(is_array($value)){
+        $tmp = "";
+        for( $i=0; $i < count($value); $i++){
+          $tmp .= ($i > 0) ? ", " : "";
+          $tmp .= $value[$i];
+        }
+        $value = $tmp;
+      }else{
+        $value = "'$value'";
+      }
+
+      $clause_frag = "( $key $conditional $value )";
       
       if(isset($clause[0][3])){ // Concatenate logical connector
         $clause_frag = " " . $clause[0][3] . " " . $clause_frag;
