@@ -5,7 +5,7 @@ header('Content-type: text/plain');
 include('db.inc');
 
 $db = new DatabaseConnection('localhost', 'dbtest', 'dbtest', 'dbtest', 'mysql', 'utf8');
-
+/*
 $where = array(
 	array( 'fid', 1, '>', 'AND' ),
 	array( 'fruit', 'mango', '<' ),
@@ -41,3 +41,5 @@ foreach ($results as &$r) {
 	}
 }
 print_r($results);
+
+//*/

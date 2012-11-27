@@ -6,6 +6,7 @@ class DB_QueryOperations extends DatabaseConnection {
     require_once("query" . DIRECTORY_SEPARATOR . "condition.inc");
     require_once("query" . DIRECTORY_SEPARATOR . "modifier.inc");
     require_once("query" . DIRECTORY_SEPARATOR . "join.inc");
+
   }
 
   public function select($table, $column = "*", $table_structure = array()){
@@ -81,18 +82,12 @@ class DB_QueryOperations extends DatabaseConnection {
   }
   
   public function delete($table){
-  
     $this->operation = "DELETE FROM $table";
-
-    // Store the type of statement as a query for different handling in execute()
-    // 'count' will specify that the result be returned after calling PDO's
-    // rowCount() function - A number representing the rows affected
     $this->pdo = "count";
-    
     return $this;
   }
   
-  public function insert($table, $data, $ignore = false){
+  public function insert($table, $data, $replace_existing = false){
     $columns = array_keys($data);
     $columns_string = implode("`, `", $columns);
     
@@ -104,8 +99,8 @@ class DB_QueryOperations extends DatabaseConnection {
       }
     }
 
-    if($ignore){
-      $this->operation = "INSERT DUPLICATE ";
+    if($replace_existing){
+      $this->operation = "INSERT IGNORE ";
     }else{
       $this->operation = "INSERT ";
     }
@@ -114,29 +109,30 @@ class DB_QueryOperations extends DatabaseConnection {
     $this->placeholders = array_values($data);
     $this->pdo = 'count';
     
-    // Return $this so the next class will be applied to DB_QueryOperations
-    return $this;
+     return $this;
   }
 
   public function last_insert_id($name = null) {     
-    $connection = $this->connection;
+    $connection = $this->connect();
     if ($name === null) {
       $last_insert = PDO::lastInsertId();
     }
     else {
       $last_insert = PDO::lastInsertId($name);
     }
+    $this->close($connection);
     return $last_insert;
   }
        
   public function list_tables($like = null) {
-    $connection = $this->connection;
+    $connection = $this->connect();
     $this->operation = 'SHOW TABLES';
     if ($like !== null) {
       $this->operation .= ' LIKE ?';
       $this->placeholders = array($like);
     }
     $this->pdo = 'list_tables';
+    $this->close($connection);
     return $this;
   }
        
@@ -167,9 +163,7 @@ class DB_QueryOperations extends DatabaseConnection {
     return parent::execute($query, $placeholders, $pdo, $debug, $json);
   }
   
-  public function __call($name, $arguments){
-  
-    $condition_methods = get_class_methods('DB_Condition');
+  public function __call($name, $arguments){    
   
     if(in_array($name, $condition_methods)){
       $condition = new DB_Condition();
@@ -184,8 +178,6 @@ class DB_QueryOperations extends DatabaseConnection {
       }
     }
     
-    $join_methods = get_class_methods('DB_Join');
-    
     if(in_array($name, $join_methods)){
       $join = new DB_Join();
       if (!empty($this->join)) {
@@ -194,7 +186,6 @@ class DB_QueryOperations extends DatabaseConnection {
       $this->join .= call_user_func_array(array($join, $name), $arguments);
     }
     
-    $modifier_methods = get_class_methods('DB_Modifier');
    
     if(in_array($name, $modifier_methods)){
       $modifier = new DB_Modifier();

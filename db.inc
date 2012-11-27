@@ -4,6 +4,8 @@
  * Example use of DatabaseConnection:
  * $gc = new DatabaseConnection('localhost', 'database', 'username', 'password');
  * $gc->select(table, column)->where(key, value, conditional)->sort(column)->execute();
+ *
+ * More examples can be found in example.php
  */
 
 class DatabaseConnection {
@@ -15,6 +17,8 @@ class DatabaseConnection {
   private static $type;
   private static $encoding;
 
+  protected $operations_methods;
+
   public function __construct($hostname, $database, $username, $password, $type = 'mysql', $encoding = 'utf8') {
     require_once("db" . DIRECTORY_SEPARATOR . "query_operations.inc");
     require_once("db" . DIRECTORY_SEPARATOR . "table_operations.inc");
@@ -25,117 +29,119 @@ class DatabaseConnection {
     self::$password = $password;
     self::$type = $type;
     self::$encoding = $encoding;
+
+    $this->operations_methods = array(
+      array( 
+        'methods' => get_class_methods('DB_TableOperations'), 
+        'class' => 'DB_TableOperations', 
+        'instance' => FALSE 
+        ),
+      array( 
+        'methods' => get_class_methods('DB_QueryOperations'), 
+        'class' => 'DB_QueryOperations', 
+        'instance' => FALSE 
+        )
+    );
   }
 
-  // Function to connect to the database, Object $newSettings 
   public function connect(){
-    try { // Try to use PDO to connect
-      switch(strtolower(self::$type)) { // Sanitize database type to lowercase
-        case "mysql": // Setup MySQL PDO connection
-          $db = new PDO('mysql:host=' . self::$hostname . ';dbname=' . self::$database . ';charset=' . self::$encoding, self::$username, self::$password, array(PDO::ATTR_PERSISTENT => true));
+    try {
+      switch(strtolower(self::$type)) {
+        case "mysql":
+          $connection_options = 'mysql:host=' . self::$hostname . ';dbname=' . self::$database . ';charset=' . self::$encoding;
+          $db = new PDO($connection_options, self::$username, self::$password, array(PDO::ATTR_PERSISTENT => true));
           return $db;
-          break;
-        case "couch": // Setup CouchDB PDO connection using custom driver
-          throw new Exception("Couch DB driver not yet implemented", 1);
-          break;
+        default:
+          throw new Exception("Driver not yet implemented", 1);
       }
     }catch(PDOException $e) { // Catch PDOException and echo error
       echo $e->getMessage();
     }
   }
+
   public function execute($query, $placeholders, $pdo, $debug = false, $json = false){
-    try {
-      // Connect to the database
-      $connection = $this->connect();
-      
-      // Query string parsed
-      if ($debug && $json) {
-        $json = array('query' => $query, 'placeholders' => $placeholders);
-        return $json;
-      }
-      elseif ($debug) {
-        echo sprintf("<pre>Query: '%s'</pre><br />", print_r($query,1));
-        if(!empty($placeholders)){
-          echo sprintf("<pre>Placeholders: %s</pre><br />", print_r($placeholders,1));
-        }
-      }
-      
-      if (isset($pdo) && $pdo == 'exec') {
-        $result = $connection->exec($query);
-      }
-      else {
-        $statement = $connection->prepare($query);
-        $result = $statement->execute($placeholders);
-        if (isset($pdo) && $pdo == 'query') {
-          $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-          if (empty($result)) {
-            $result = false;
-          }
-        }
-        elseif (isset($pdo) && $pdo == 'count') {
-          $result = $statement->rowCount();
-        }
-        elseif (isset($pdo) && $pdo == 'list_tables') {
-          $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-          if(empty($result)) {
-            $result = FALSE;
-          }
-          else {
-            foreach ($result as $k => $v) {
-              reset($result[$k]);
-              $result[$k] = current($result[$k]);
-            }
-          }
-        }
-        elseif (isset($pdo) && $pdo == 'list_columns') {
-          $result = $statement->fetchAll(PDO::FETCH_ASSOC);
-          if(empty($result)) {
-            $result = FALSE;
-          }
-        }
-      }
-      // Close the connection
-      $this->close($connection);
-      // Return the result to be handled by the programmer
-      return $result;
+    if(!isset($pdo)){
+      return false;
     }
-    catch(PDOException $e){ // If there is an error, catches it and prints it.
+
+    if($debug){
+      $debug_info = $this->debug_query($query, $placeholders, $json);
+      if(FALSE !== $debug_info){
+        return $debug_info;
+      }
+    }
+
+    try {      
+      $result = $this->run_query($query, $placeholders, $pdo);
+    }catch(PDOException $e){
       echo $e->getMessage();
-    }
+    }   
+
+    return $result;
   }
 
-  // Get the ID using PDO's lastInsertId
+  private function run_query($query, $placeholders, $pdo){
+    $connection = self::connect();
+
+    if($pdo == 'exec'){
+        $result = $connection->exec($query);
+    }else if($pdo == 'count'){
+        $result = $statement->rowCount();
+    }else{
+        $statement = $connection->prepare($query);
+        $result = $statement->execute($placeholders);        
+        $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+        
+        if($pdo == 'list_tables' && $result !== FALSE){            
+          foreach ($result as $k => $v) {
+            reset($result[$k]);
+            $result[$k] = current($result[$k]);
+          }
+        }
+    }
+    
+    $this->close($connection);
+    return empty($result) ? FALSE : $result;
+  }
+    
+  private function debug_query($query, $placeholders, $json){
+    if ($json) {
+      $json = array('query' => $query, 'placeholders' => $placeholders);
+      return $json;
+    }
+
+    echo sprintf("<pre>Query: '%s'</pre><br />", print_r($query,1));
+    echo sprintf("<pre>Placeholders: %s</pre><br />", print_r($placeholders,1));
+    return false;
+  }
+
   public function last_insert_id(){
-    $db = new PDO('mysql:host=' . self::$hostname . ';dbname=' . self::$database . ';charset=' . self::$encoding, self::$username, self::$password, array(PDO::ATTR_PERSISTENT => true));
+    $db = product.html;
     $connection = $this->connection;
     $last_insert = $db->lastInsertId();
     $this->close($connection);
     return $last_insert;
   }
-  
-  // Function to close the database connection
+    
   public function close(&$connection){
     $connection = null;
   }
   
-  // Used to catch unspecified functions, all query handling 
-  // is done through __call()
+  /***************************
+   * Used to catch unspecified functions, 
+   * all query handling is done through __call()
+   *
+   * The operations classes are lazy loaded 
+   **************************/
   public function __call($name, $arguments){
-    $table_operations_methods = get_class_methods('DB_TableOperations');
-    if(in_array($name, $table_operations_methods)){ 
-      $table_operations = new DB_TableOperations();
-      
-      // Calls the function in the scope of $table_operations, the relevant function is
-      // stored in $name, with $arguments passed for the functions arguments
-      return call_user_func_array(array($table_operations, $name), $arguments);
+    foreach($this->operations_methods as $class_info){
+      if(in_array($name, $class_info['methods'])){
+        if($class_info['instance'] === FALSE){
+          $class_info['instance'] = new $class_info['class']();
+        }
+        return call_user_func_array(array($class_info['instance'], $name), $arguments);
+      }
     }
-
-    $query_operations_methods = get_class_methods('DB_QueryOperations');
-    if(in_array($name, $query_operations_methods)){
-      $query_operations = new DB_QueryOperations();
-      // Calls the function in the scope of $query_operations, the relevant function is
-      // stored in $name, with $arguments passed for the functions arguments
-      return call_user_func_array(array($query_operations, $name), $arguments);
-    }
+    return false;
   }
 }
